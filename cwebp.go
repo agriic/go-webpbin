@@ -26,6 +26,7 @@ type CWebP struct {
 	outputFile string
 	output     io.Writer
 	quality    int
+	lossless   bool
 	crop       *cropInfo
 }
 
@@ -100,6 +101,14 @@ func (c *CWebP) Quality(quality uint) *CWebP {
 	return c
 }
 
+// Lossless specify encoding mode. By default it is false (off)
+//
+// Lossless encoding produces much bigger images, and quality in this mode means compression amount
+func (c *CWebP) Lossless(lossless bool) *CWebP {
+	c.lossless = lossless
+	return c
+}
+
 // Crop the source to a rectangle with top-left corner at coordinates (x, y) and size width x height. This cropping area must be fully contained within the source rectangle.
 func (c *CWebP) Crop(x, y, width, height int) *CWebP {
 	c.crop = &cropInfo{x, y, width, height}
@@ -109,6 +118,10 @@ func (c *CWebP) Crop(x, y, width, height int) *CWebP {
 // Run starts cwebp with specified parameters.
 func (c *CWebP) Run() error {
 	defer c.BinWrapper.Reset()
+
+	if c.lossless {
+		c.Arg("-lossless")
+	}
 
 	if c.quality > -1 {
 		c.Arg("-q", fmt.Sprintf("%d", c.quality))
